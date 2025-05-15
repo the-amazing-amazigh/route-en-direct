@@ -21,7 +21,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename="/route-en-direct">
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/tracking/:trackingId" element={<TrackingPage />} />
