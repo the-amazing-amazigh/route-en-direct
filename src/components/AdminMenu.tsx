@@ -1,5 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
+import { Truck, Users, Package, Settings } from "lucide-react";
 
 const AdminMenu = () => {
   const location = useLocation();
@@ -9,11 +10,11 @@ const AdminMenu = () => {
   };
   
   const menuItems = [
-    { path: "/admin", label: "Tableau de bord" },
-    { path: "/admin/shipments", label: "Livraisons" },
-    { path: "/admin/trucks", label: "Véhicules" },
-    { path: "/admin/drivers", label: "Chauffeurs" },
-    { path: "/admin/settings", label: "Paramètres" },
+    { path: "/admin", label: "Tableau de bord", icon: Package },
+    { path: "/admin/shipments", label: "Livraisons", icon: Package },
+    { path: "/admin/trucks", label: "Véhicules", icon: Truck },
+    { path: "/admin/drivers", label: "Chauffeurs", icon: Users },
+    { path: "/admin/settings", label: "Paramètres", icon: Settings },
   ];
   
   return (
@@ -24,12 +25,13 @@ const AdminMenu = () => {
           <li key={item.path}>
             <Link
               to={item.path}
-              className={`block px-4 py-2 rounded-md transition-colors ${
+              className={`flex items-center px-4 py-2 rounded-md transition-colors ${
                 isActive(item.path)
                   ? "bg-route-primary text-white"
                   : "hover:bg-gray-100"
               }`}
             >
+              <item.icon className="mr-2 h-5 w-5" />
               {item.label}
             </Link>
           </li>

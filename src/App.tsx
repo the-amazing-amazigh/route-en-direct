@@ -8,6 +8,10 @@ import Index from "./pages/Index";
 import TrackingPage from "./pages/TrackingPage";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+import ShipmentsPage from "./pages/ShipmentsPage";
+import TrucksPage from "./pages/TrucksPage";
+import DriversPage from "./pages/DriversPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +27,10 @@ const App = () => (
           <Route path="/tracking/:trackingId" element={<TrackingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/shipments" element={<ShipmentsPage />} />
+          <Route path="/admin/trucks" element={<TrucksPage />} />
+          <Route path="/admin/drivers" element={<DriversPage />} />
+          <Route path="/admin/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
