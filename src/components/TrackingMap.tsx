@@ -95,23 +95,23 @@ const TrackingMap = ({ shipment, truckData }: TrackingMapProps) => {
     <div className="h-[400px] md:h-[500px] w-full rounded-lg overflow-hidden shadow-md">
       {currentPosition ? (
         <MapContainer 
-          center={[currentPosition.lat, currentPosition.lng]} 
-          zoom={10} 
-          style={{ height: "100%", width: "100%" }}
           bounds={bounds}
+          style={{ height: "100%", width: "100%" }}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           />
           
           {/* Tracer l'itinéraire */}
           <Polyline 
             positions={routePoints}
-            color="#1A73E8"
-            weight={3}
-            opacity={0.7}
-            dashArray="5, 10"
+            pathOptions={{
+              color: "#1A73E8",
+              weight: 3,
+              opacity: 0.7,
+              dashArray: "5, 10"
+            }}
           />
           
           {/* Point de départ */}
@@ -161,7 +161,6 @@ const TrackingMap = ({ shipment, truckData }: TrackingMapProps) => {
             <Marker 
               position={[currentPosition.lat, currentPosition.lng]} 
               icon={truckIcon}
-              className="active-truck"
             >
               <Popup>
                 <strong>Position actuelle</strong><br />

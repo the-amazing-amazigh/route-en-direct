@@ -1,5 +1,4 @@
-
-import { Shipment, ShipmentStatus, Position } from "../types";
+import { Shipment, ShipmentStatus, Position, TruckData } from "../types";
 
 // Points de départ et d'arrivée pour nos livraisons simulées
 const locations = {
@@ -72,7 +71,7 @@ export const mockShipments: Shipment[] = [
     trackingId: "FTL25698745",
     description: "Matériel informatique - 15 palettes",
     status: ShipmentStatus.EnTransit,
-    currentPosition: getRandomPosition(locations.paris, locations.lyon, 0.6),
+    currentPosition: getRandomPosition(locations.paris, locations.marseille, 0.6),
     origin: {
       id: "stop-001",
       name: "Entrepôt Paris Nord",
