@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -74,6 +73,14 @@ const TrackingMap = ({ shipment, truckData }: TrackingMapProps) => {
   ]);
   
   useEffect(() => {
+    // Add Leaflet CSS directly in case the import doesn't work
+    const linkElement = document.createElement("link");
+    linkElement.rel = "stylesheet";
+    linkElement.href = "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css";
+    linkElement.integrity = "sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==";
+    linkElement.crossOrigin = "";
+    document.head.appendChild(linkElement);
+    
     // Ajouter des styles CSS pour l'icône de camion animée
     const style = document.createElement("style");
     style.textContent = `
@@ -83,11 +90,16 @@ const TrackingMap = ({ shipment, truckData }: TrackingMapProps) => {
       .active-truck {
         animation: pulse-slow 3s infinite;
       }
+      .leaflet-container {
+        height: 100%;
+        width: 100%;
+      }
     `;
     document.head.appendChild(style);
     
     return () => {
       document.head.removeChild(style);
+      // Keep the leaflet CSS in the document to avoid flickering between page transitions
     };
   }, []);
   
