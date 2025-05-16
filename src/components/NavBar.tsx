@@ -2,13 +2,15 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { isAuthenticated, logoutUser } from "../services/api";
+import { isAuthenticated, logoutUser, getCurrentUser, isAdmin } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 const NavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
   const authenticated = isAuthenticated();
+  const user = getCurrentUser();
+  const admin = isAdmin();
   
   const handleLogout = () => {
     logoutUser();
@@ -33,9 +35,18 @@ const NavBar = () => {
             </Link>
             {authenticated ? (
               <>
-                <Link to="/admin" className="text-gray-600 hover:text-route-primary">
-                  Administration
-                </Link>
+                {admin ? (
+                  <Link to="/admin" className="text-gray-600 hover:text-route-primary">
+                    Administration
+                  </Link>
+                ) : (
+                  <Link to="/dashboard" className="text-gray-600 hover:text-route-primary">
+                    Mon tableau de bord
+                  </Link>
+                )}
+                <div className="text-gray-600">
+                  Bonjour, {user?.name}
+                </div>
                 <Button 
                   variant="outline"
                   onClick={handleLogout}
@@ -45,13 +56,22 @@ const NavBar = () => {
                 </Button>
               </>
             ) : (
-              <Button 
-                variant="outline" 
-                onClick={() => navigate("/login")}
-                className="text-route-primary border-route-primary hover:bg-route-primary hover:text-white"
-              >
-                Connexion
-              </Button>
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate("/register")}
+                  className="text-route-primary border-route-primary hover:bg-route-primary hover:text-white"
+                >
+                  Inscription
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate("/login")}
+                  className="text-route-primary border-route-primary hover:bg-route-primary hover:text-white"
+                >
+                  Connexion
+                </Button>
+              </>
             )}
           </div>
           
@@ -91,13 +111,26 @@ const NavBar = () => {
               </Link>
               {authenticated ? (
                 <>
-                  <Link 
-                    to="/admin" 
-                    className="text-gray-600 hover:text-route-primary"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Administration
-                  </Link>
+                  {admin ? (
+                    <Link 
+                      to="/admin" 
+                      className="text-gray-600 hover:text-route-primary"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Administration
+                    </Link>
+                  ) : (
+                    <Link 
+                      to="/dashboard" 
+                      className="text-gray-600 hover:text-route-primary"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Mon tableau de bord
+                    </Link>
+                  )}
+                  <div className="text-gray-600">
+                    Bonjour, {user?.name}
+                  </div>
                   <Button 
                     variant="outline"
                     onClick={() => {
@@ -110,16 +143,28 @@ const NavBar = () => {
                   </Button>
                 </>
               ) : (
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    navigate("/login");
-                    setIsMenuOpen(false);
-                  }}
-                  className="text-route-primary border-route-primary hover:bg-route-primary hover:text-white w-full"
-                >
-                  Connexion
-                </Button>
+                <>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      navigate("/register");
+                      setIsMenuOpen(false);
+                    }}
+                    className="text-route-primary border-route-primary hover:bg-route-primary hover:text-white w-full mb-2"
+                  >
+                    Inscription
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      navigate("/login");
+                      setIsMenuOpen(false);
+                    }}
+                    className="text-route-primary border-route-primary hover:bg-route-primary hover:text-white w-full"
+                  >
+                    Connexion
+                  </Button>
+                </>
               )}
             </div>
           </div>

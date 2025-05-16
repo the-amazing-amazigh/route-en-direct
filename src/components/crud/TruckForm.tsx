@@ -22,12 +22,16 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 
+// Définir le statut comme enum pour le typage strict
+const TruckStatus = z.enum(["En service", "En maintenance", "Disponible"]);
+type TruckStatusType = z.infer<typeof TruckStatus>;
+
 // Définir le schéma de validation pour les camions
 const truckSchema = z.object({
   registration: z.string().min(5, "L'immatriculation doit contenir au moins 5 caractères"),
   model: z.string().min(2, "Le modèle doit contenir au moins 2 caractères"),
   year: z.coerce.number().int().min(1990).max(new Date().getFullYear() + 1),
-  status: z.enum(["En service", "En maintenance", "Disponible"]),
+  status: TruckStatus,
 });
 
 type TruckFormValues = z.infer<typeof truckSchema>;
@@ -38,7 +42,7 @@ type TruckFormProps = {
     registration: string;
     model: string;
     year: number;
-    status: string;
+    status: TruckStatusType;
   };
   onCancel: () => void;
 };

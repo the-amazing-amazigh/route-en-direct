@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../services/api";
 import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
 import { Button } from "@/components/ui/button";
@@ -9,9 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-const LoginPage = () => {
+const RegisterPage = () => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -21,39 +22,42 @@ const LoginPage = () => {
     setError(null);
     setIsLoading(true);
     
+    // Validation de base
+    if (password !== confirmPassword) {
+      setError("Les mots de passe ne correspondent pas.");
+      setIsLoading(false);
+      return;
+    }
+    
     try {
-      // D'abord vérifier si c'est l'admin
-      const adminResult = await loginUser(email, password);
+      // Dans une implémentation réelle, cette fonction enverrait les données à un backend
+      // qui effectuerait le hachage du mot de passe avec bcrypt et l'enregistrement dans MySQL
+      // Pour l'instant, nous simulons avec localStorage
+      const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
       
-      if (adminResult.success) {
-        toast({
-          title: "Connexion réussie",
-          description: "Vous allez être redirigé vers le tableau de bord.",
-        });
-        navigate("/admin");
+      // Vérifier si l'email existe déjà
+      if (existingUsers.some((user: any) => user.email === email)) {
+        setError("Cet email est déjà utilisé.");
+        setIsLoading(false);
         return;
       }
       
-      // Si ce n'est pas l'admin, vérifier les utilisateurs enregistrés
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
-      const user = users.find((u: any) => u.email === email);
+      // Simuler l'enregistrement utilisateur
+      const newUser = {
+        id: `user-${Date.now()}`,
+        name,
+        email,
+        password: `hashed_${password}`, // Dans une vraie implémentation, on utiliserait bcrypt ici
+        vehicles: []
+      };
       
-      if (user && `hashed_${password}` === user.password) {
-        // Mémoriser l'utilisateur connecté
-        localStorage.setItem("user", JSON.stringify({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: "user"
-        }));
-        
-        toast.success("Connexion réussie, vous allez être redirigé vers votre tableau de bord.");
-        navigate("/dashboard");
-      } else {
-        setError("Email ou mot de passe incorrect");
-      }
+      existingUsers.push(newUser);
+      localStorage.setItem("users", JSON.stringify(existingUsers));
+      
+      toast.success("Inscription réussie, vous pouvez maintenant vous connecter.");
+      navigate("/login");
     } catch (err) {
-      setError("Une erreur est survenue. Veuillez réessayer plus tard.");
+      setError("Une erreur est survenue lors de l'inscription.");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -67,15 +71,27 @@ const LoginPage = () => {
       <main className="flex-grow flex items-center justify-center bg-gray-50 px-4 py-12">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-lg shadow-md p-8">
-            <h2 className="text-2xl font-bold text-center mb-6">Connexion</h2>
+            <h2 className="text-2xl font-bold text-center mb-6">Inscription</h2>
             
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nom</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Votre nom"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@route-en-direct.fr"
+                  placeholder="votre@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -94,6 +110,18 @@ const LoginPage = () => {
                 />
               </div>
               
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
+              
               {error && (
                 <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm">
                   {error}
@@ -106,23 +134,17 @@ const LoginPage = () => {
                   className="w-full bg-route-primary hover:bg-blue-700"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Connexion en cours..." : "Se connecter"}
+                  {isLoading ? "Inscription en cours..." : "S'inscrire"}
                 </Button>
                 
-                <div className="text-center">
-                  <p className="text-gray-600 text-sm mb-2">
-                    Pour la démo admin, utilisez:<br />
-                    Email: admin@route-en-direct.fr<br />
-                    Mot de passe: admin123
-                  </p>
-                  
-                  <p className="text-gray-600 text-sm mt-4">
-                    Pas encore de compte ?{" "}
+                <div className="text-center text-sm">
+                  <p className="text-gray-600">
+                    Vous avez déjà un compte ?{" "}
                     <a
-                      href="/route-en-direct/register"
+                      href="/route-en-direct/login"
                       className="text-route-primary hover:underline"
                     >
-                      S'inscrire
+                      Se connecter
                     </a>
                   </p>
                 </div>
@@ -137,4 +159,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;

@@ -1,4 +1,3 @@
-
 import { mockShipments, findShipmentByTrackingId, getTruckDataForShipment, updateTruckPositions } from '../data/mockData';
 import { Shipment, TruckData } from '../types';
 
@@ -127,7 +126,7 @@ export const deleteDriver = async (id: string) => {
   return null;
 };
 
-// Simuler la connexion d'un utilisateur
+// Simuler la connexion d'un utilisateur (admin uniquement)
 export const loginUser = async (email: string, password: string): Promise<{success: boolean, message?: string}> => {
   // Simuler la latence réseau
   await new Promise(resolve => setTimeout(resolve, 1000));
@@ -165,4 +164,44 @@ export const getCurrentUser = () => {
   } catch (e) {
     return null;
   }
+};
+
+// Vérifier si l'utilisateur connecté est un administrateur
+export const isAdmin = (): boolean => {
+  const user = getCurrentUser();
+  return user !== null && user.role === "admin";
+};
+
+// API simulée pour récupérer les données d'un véhicule via l'API CarrierWeb
+export const getVehicleDataFromAPI = async (vehid: string, regnum: string): Promise<any> => {
+  // Simuler la latence réseau
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  // Dans une implémentation réelle, cette requête serait effectuée côté serveur
+  // const apiUrl = `http://carrierweb.eu/api/api.asmx/vehicle?apikey=5B6B31-7E1B0C-ED66E6&vehid=${vehid}&regnum=${regnum}`;
+  // const response = await fetch(apiUrl);
+  // return await response.json();
+  
+  // Simuler une réponse
+  return {
+    success: true,
+    data: {
+      id: vehid,
+      registration: regnum,
+      make: "Volvo",
+      model: "FH16",
+      year: 2022,
+      status: "Active",
+      lastPosition: {
+        latitude: 48.8566,
+        longitude: 2.3522,
+        timestamp: new Date().toISOString(),
+        speed: 65,
+        direction: "Nord"
+      },
+      fuelLevel: 78,
+      mileage: 125000,
+      nextService: "2023-06-15"
+    }
+  };
 };
