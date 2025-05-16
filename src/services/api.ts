@@ -1,5 +1,9 @@
+
 import { mockShipments, findShipmentByTrackingId, getTruckDataForShipment, updateTruckPositions } from '../data/mockData';
-import { Shipment, TruckData } from '../types';
+import { Shipment, TruckData, ShipmentStatus } from '../types';
+
+// Création d'une copie locale des envois pour pouvoir les modifier
+let shipments = [...mockShipments];
 
 let trucks = [
   { id: "truck-001", registration: "AB-123-CD", model: "Volvo FH16", year: 2022, status: "En service" },
@@ -35,7 +39,7 @@ export const getTruckData = async (shipmentId: string): Promise<TruckData | null
   // Simuler la latence réseau
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  const shipment = mockShipments.find(s => s.id === shipmentId);
+  const shipment = shipments.find(s => s.id === shipmentId);
   if (!shipment) {
     return null;
   }
@@ -51,7 +55,87 @@ export const getAllShipments = async (): Promise<Shipment[]> => {
   // Simuler la latence réseau
   await new Promise(resolve => setTimeout(resolve, 1000));
   
-  return mockShipments;
+  return shipments;
+};
+
+// CRUD pour les livraisons (envois)
+export const addShipment = async (shipmentData: any) => {
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  const newShipment = {
+    id: `shipment-${Date.now()}`,
+    trackingId: shipmentData.trackingId,
+    description: shipmentData.description,
+    status: shipmentData.status,
+    departureTime: new Date(shipmentData.departureTime).toISOString(),
+    eta: new Date(shipmentData.eta).toISOString(),
+    client: {
+      id: `client-${Date.now()}`,
+      name: shipmentData.clientName,
+      email: "client@example.com"
+    },
+    origin: {
+      id: `location-${Date.now()}-origin`,
+      name: shipmentData.origin,
+      coordinates: {
+        lat: 48.8566 + (Math.random() * 2 - 1),
+        lng: 2.3522 + (Math.random() * 2 - 1),
+      }
+    },
+    destination: {
+      id: `location-${Date.now()}-destination`,
+      name: shipmentData.destination,
+      coordinates: {
+        lat: 48.8566 + (Math.random() * 10 - 5),
+        lng: 2.3522 + (Math.random() * 10 - 5),
+      }
+    },
+    truckId: "truck-001"
+  };
+  
+  shipments.push(newShipment);
+  return newShipment;
+};
+
+export const updateShipment = async (id: string, shipmentData: any) => {
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  const index = shipments.findIndex(s => s.id === id);
+  if (index !== -1) {
+    shipments[index] = {
+      ...shipments[index],
+      trackingId: shipmentData.trackingId,
+      description: shipmentData.description,
+      status: shipmentData.status,
+      departureTime: new Date(shipmentData.departureTime).toISOString(),
+      eta: new Date(shipmentData.eta).toISOString(),
+      client: {
+        ...shipments[index].client,
+        name: shipmentData.clientName,
+      },
+      origin: {
+        ...shipments[index].origin,
+        name: shipmentData.origin,
+      },
+      destination: {
+        ...shipments[index].destination,
+        name: shipmentData.destination,
+      },
+    };
+    return shipments[index];
+  }
+  return null;
+};
+
+export const deleteShipment = async (id: string) => {
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  const index = shipments.findIndex(s => s.id === id);
+  if (index !== -1) {
+    const deleted = shipments.splice(index, 1)[0];
+    return deleted;
+  }
+  return null;
 };
 
 // CRUD pour les véhicules

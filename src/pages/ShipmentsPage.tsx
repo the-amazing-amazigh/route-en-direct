@@ -6,35 +6,90 @@ import { Button } from "@/components/ui/button";
 import AdminMenu from "@/components/AdminMenu";
 import NavBar from "@/components/NavBar";
 import { Plus, Edit, Trash2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { getAllShipments } from "@/services/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getAllShipments, addShipment, updateShipment, deleteShipment } from "@/services/api";
 import { Shipment } from "@/types";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ShipmentForm } from "@/components/crud/ShipmentForm";
+import ConfirmDialog from "@/components/crud/ConfirmDialog";
 
 const ShipmentsPage = () => {
-  // État pour suivre l'ID du shipment actuellement sélectionné
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   
   const { data: shipments, isLoading, error } = useQuery({
     queryKey: ['shipments'],
     queryFn: getAllShipments,
   });
 
-  const handleEdit = (id: string) => {
-    setSelectedId(id);
-    // Pour l'instant, on affiche juste un toast car l'édition des livraisons est plus complexe
-    toast.info("Fonctionnalité d'édition des livraisons à venir");
+  // Mutations pour les opérations CRUD
+  const addMutation = useMutation({
+    mutationFn: addShipment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipments'] });
+      setIsAddDialogOpen(false);
+      toast.success("Livraison ajoutée avec succès");
+    },
+    onError: (error) => {
+      toast.error(`Erreur lors de l'ajout: ${error}`);
+    }
+  });
+  
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => updateShipment(selectedShipment!.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipments'] });
+      setIsEditDialogOpen(false);
+      setSelectedShipment(null);
+      toast.success("Livraison mise à jour avec succès");
+    },
+    onError: (error) => {
+      toast.error(`Erreur lors de la mise à jour: ${error}`);
+    }
+  });
+  
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteShipment(selectedShipment!.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipments'] });
+      setIsDeleteDialogOpen(false);
+      setSelectedShipment(null);
+      toast.success("Livraison supprimée avec succès");
+    },
+    onError: (error) => {
+      toast.error(`Erreur lors de la suppression: ${error}`);
+    }
+  });
+  
+  // Handlers
+  const handleAddSubmit = (data: any) => {
+    addMutation.mutate(data);
   };
-
-  const handleDelete = (id: string) => {
-    setSelectedId(id);
-    // Pour l'instant, on affiche juste un toast car la suppression des livraisons est plus complexe
-    toast.info("Fonctionnalité de suppression des livraisons à venir");
+  
+  const handleEditSubmit = (data: any) => {
+    updateMutation.mutate(data);
   };
-
+  
+  const handleDeleteConfirm = () => {
+    deleteMutation.mutate();
+  };
+  
+  const openEditDialog = (shipment: Shipment) => {
+    setSelectedShipment(shipment);
+    setIsEditDialogOpen(true);
+  };
+  
+  const openDeleteDialog = (shipment: Shipment) => {
+    setSelectedShipment(shipment);
+    setIsDeleteDialogOpen(true);
+  };
+  
   const handleAdd = () => {
-    // Pour l'instant, on affiche juste un toast car l'ajout des livraisons est plus complexe
-    toast.info("Fonctionnalité d'ajout de livraisons à venir");
+    setIsAddDialogOpen(true);
   };
 
   return (
@@ -95,14 +150,14 @@ const ShipmentsPage = () => {
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
-                                onClick={() => handleEdit(shipment.id)}
+                                onClick={() => openEditDialog(shipment)}
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
                               <Button 
                                 variant="ghost" 
                                 size="sm"
-                                onClick={() => handleDelete(shipment.id)}
+                                onClick={() => openDeleteDialog(shipment)}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -118,6 +173,51 @@ const ShipmentsPage = () => {
           </div>
         </div>
       </div>
+      
+      {/* Dialogues pour l'ajout, la modification et la suppression */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ajouter une livraison</DialogTitle>
+          </DialogHeader>
+          <ShipmentForm 
+            onSubmit={handleAddSubmit} 
+            onCancel={() => setIsAddDialogOpen(false)} 
+          />
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier une livraison</DialogTitle>
+          </DialogHeader>
+          {selectedShipment && (
+            <ShipmentForm 
+              initialData={{
+                trackingId: selectedShipment.trackingId,
+                description: selectedShipment.description,
+                status: selectedShipment.status,
+                clientName: selectedShipment.client.name,
+                origin: selectedShipment.origin.name,
+                destination: selectedShipment.destination.name,
+                departureTime: new Date(selectedShipment.departureTime).toISOString().slice(0, 16),
+                eta: new Date(selectedShipment.eta).toISOString().slice(0, 16),
+              }}
+              onSubmit={handleEditSubmit} 
+              onCancel={() => setIsEditDialogOpen(false)} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      <ConfirmDialog 
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Supprimer une livraison"
+        description={`Êtes-vous sûr de vouloir supprimer la livraison ${selectedShipment?.trackingId} ?`}
+      />
     </div>
   );
 };
