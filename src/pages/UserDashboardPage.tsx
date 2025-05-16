@@ -11,8 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ConfirmDialog from "@/components/crud/ConfirmDialog";
-import { Plus, Trash2, RefreshCcw } from "lucide-react";
+import { Plus, Trash2, RefreshCcw, Crown } from "lucide-react";
 import { getVehicleDataFromAPI } from "@/services/api";
+import PlanUpgradeDialog from "@/components/PlanUpgradeDialog";
 
 const UserDashboardPage = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const UserDashboardPage = () => {
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isPlanUpgradeOpen, setIsPlanUpgradeOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
   const [vehicleData, setVehicleData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,8 +44,26 @@ const UserDashboardPage = () => {
       const allUsers = JSON.parse(localStorage.getItem("users") || "[]");
       const foundUser = allUsers.find((u: any) => u.id === user.id);
       
-      if (foundUser && foundUser.vehicles) {
-        setVehicles(foundUser.vehicles);
+      if (foundUser) {
+        // Vérifier si le compte est actif
+        if (!foundUser.isActive) {
+          toast.error("Votre compte a été désactivé. Veuillez contacter l'administrateur.");
+          localStorage.removeItem("user");
+          navigate("/login");
+          return;
+        }
+        
+        // Mise à jour du plan dans la session au cas où il aurait été modifié par l'admin
+        const userSession = JSON.parse(localStorage.getItem("user") || "{}");
+        if (foundUser.plan !== userSession.plan) {
+          userSession.plan = foundUser.plan;
+          localStorage.setItem("user", JSON.stringify(userSession));
+          setCurrentUser(userSession);
+        }
+        
+        if (foundUser.vehicles) {
+          setVehicles(foundUser.vehicles);
+        }
       }
     } catch (e) {
       navigate("/login");
@@ -56,6 +76,13 @@ const UserDashboardPage = () => {
     
     if (!regnum) {
       toast.error("Veuillez remplir le champ d'immatriculation");
+      return;
+    }
+    
+    // Vérifier la limite du plan gratuit
+    if (currentUser.plan === "gratuit" && vehicles.length >= 1) {
+      setIsAddDialogOpen(false);
+      setIsPlanUpgradeOpen(true);
       return;
     }
     
@@ -138,11 +165,27 @@ const UserDashboardPage = () => {
     <div className="min-h-screen bg-gray-50">
       <NavBar />
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold">Tableau de bord utilisateur</h2>
-          <p className="text-gray-600">
-            Bienvenue, {currentUser?.name || "Utilisateur"}
-          </p>
+        <div className="mb-6 flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold">Tableau de bord utilisateur</h2>
+            <p className="text-gray-600">
+              Bienvenue, {currentUser?.name || "Utilisateur"}
+            </p>
+          </div>
+          {currentUser && (
+            <div className={`px-4 py-2 rounded-full flex items-center ${
+              currentUser.plan === "premium" ? "bg-amber-100 text-amber-800" : "bg-gray-100 text-gray-700"
+            }`}>
+              {currentUser.plan === "premium" ? (
+                <>
+                  <Crown className="h-4 w-4 mr-2 text-amber-500" />
+                  <span className="font-medium">Plan Premium</span>
+                </>
+              ) : (
+                <span className="font-medium">Plan Gratuit</span>
+              )}
+            </div>
+          )}
         </div>
 
         <Card>
@@ -207,6 +250,21 @@ const UserDashboardPage = () => {
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+            )}
+
+            {currentUser?.plan === "gratuit" && vehicles.length === 1 && (
+              <div className="mt-4 bg-blue-50 p-4 rounded-md text-sm">
+                <p className="text-blue-600">
+                  Vous avez atteint la limite du plan gratuit (1 véhicule).
+                  <Button 
+                    variant="link" 
+                    className="text-blue-700 p-0 ml-2 h-auto" 
+                    onClick={() => setIsPlanUpgradeOpen(true)}
+                  >
+                    Passez au plan Premium pour ajouter plus de véhicules.
+                  </Button>
+                </p>
               </div>
             )}
           </CardContent>
@@ -330,6 +388,12 @@ const UserDashboardPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Dialogue pour la mise à niveau du plan */}
+      <PlanUpgradeDialog 
+        isOpen={isPlanUpgradeOpen}
+        onClose={() => setIsPlanUpgradeOpen(false)}
+      />
 
       <Footer />
     </div>

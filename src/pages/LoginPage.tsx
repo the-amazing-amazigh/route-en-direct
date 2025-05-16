@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../services/api";
@@ -26,10 +25,7 @@ const LoginPage = () => {
       const adminResult = await loginUser(email, password);
       
       if (adminResult.success) {
-        toast({
-          title: "Connexion réussie",
-          description: "Vous allez être redirigé vers le tableau de bord.",
-        });
+        toast.success("Connexion réussie, vous allez être redirigé vers le tableau de bord.");
         navigate("/admin");
         return;
       }
@@ -44,7 +40,8 @@ const LoginPage = () => {
           id: user.id,
           name: user.name,
           email: user.email,
-          role: "user"
+          role: "user",
+          plan: user.plan || "gratuit" // Ajout du plan d'abonnement
         }));
         
         toast.success("Connexion réussie, vous allez être redirigé vers votre tableau de bord.");

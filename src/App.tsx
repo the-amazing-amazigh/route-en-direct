@@ -13,6 +13,7 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 import ShipmentsPage from "./pages/ShipmentsPage";
 import TrucksPage from "./pages/TrucksPage";
 import DriversPage from "./pages/DriversPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/admin/shipments" element={<ShipmentsPage />} />
           <Route path="/admin/trucks" element={<TrucksPage />} />
           <Route path="/admin/drivers" element={<DriversPage />} />
+          <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/admin/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -14,6 +14,7 @@ const AdminMenu = () => {
     { path: "/admin/shipments", label: "Livraisons", icon: Package },
     { path: "/admin/trucks", label: "Véhicules", icon: Truck },
     { path: "/admin/drivers", label: "Chauffeurs", icon: Users },
+    { path: "/admin/users", label: "Utilisateurs", icon: Users },
     { path: "/admin/settings", label: "Paramètres", icon: Settings },
   ];
   

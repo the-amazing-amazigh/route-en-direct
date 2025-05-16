@@ -48,7 +48,9 @@ const RegisterPage = () => {
         name,
         email,
         password: `hashed_${password}`, // Dans une vraie implémentation, on utiliserait bcrypt ici
-        vehicles: []
+        vehicles: [],
+        plan: "gratuit", // Plan par défaut (gratuit)
+        isActive: true   // Statut du compte (actif par défaut)
       };
       
       existingUsers.push(newUser);

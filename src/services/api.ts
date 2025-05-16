@@ -1,3 +1,4 @@
+
 import { mockShipments, findShipmentByTrackingId, getTruckDataForShipment, updateTruckPositions } from '../data/mockData';
 import { Shipment, TruckData, ShipmentStatus } from '../types';
 
@@ -224,6 +225,47 @@ export const deleteDriver = async (id: string) => {
   return null;
 };
 
+// Gestion des utilisateurs pour le SaaS
+
+// Récupérer tous les utilisateurs (pour l'admin)
+export const getAllUsers = async () => {
+  await new Promise(resolve => setTimeout(resolve, 800));
+  const allUsers = JSON.parse(localStorage.getItem("users") || "[]");
+  return allUsers;
+};
+
+// Mettre à jour un utilisateur (pour l'admin)
+export const updateUser = async (id: string, userData: any) => {
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  const allUsers = JSON.parse(localStorage.getItem("users") || "[]");
+  const userIndex = allUsers.findIndex((u: any) => u.id === id);
+  
+  if (userIndex !== -1) {
+    allUsers[userIndex] = { ...allUsers[userIndex], ...userData };
+    localStorage.setItem("users", JSON.stringify(allUsers));
+    return allUsers[userIndex];
+  }
+  
+  return null;
+};
+
+// Supprimer un utilisateur (pour l'admin)
+export const deleteUser = async (id: string) => {
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  const allUsers = JSON.parse(localStorage.getItem("users") || "[]");
+  const userIndex = allUsers.findIndex((u: any) => u.id === id);
+  
+  if (userIndex !== -1) {
+    const deleted = allUsers.splice(userIndex, 1)[0];
+    localStorage.setItem("users", JSON.stringify(allUsers));
+    return deleted;
+  }
+  
+  return null;
+};
+
 // Simuler la connexion d'un utilisateur (admin uniquement)
 export const loginUser = async (email: string, password: string): Promise<{success: boolean, message?: string}> => {
   // Simuler la latence réseau
@@ -303,3 +345,58 @@ export const getVehicleDataFromAPI = async (regnum: string): Promise<any> => {
     }
   };
 };
+
+// Créer un ensemble minimal d'utilisateurs de test si aucun n'existe
+export const seedInitialUsers = () => {
+  const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
+  
+  if (existingUsers.length === 0) {
+    const testUsers = [
+      {
+        id: "user-1001",
+        name: "Jean Martin",
+        email: "jean@example.com",
+        password: "hashed_password123",
+        plan: "gratuit",
+        isActive: true,
+        vehicles: [
+          {
+            id: "vehicle-1001",
+            regnum: "AB-123-CD",
+            user_id: "user-1001"
+          }
+        ]
+      },
+      {
+        id: "user-1002",
+        name: "Marie Dupont",
+        email: "marie@example.com",
+        password: "hashed_password123",
+        plan: "premium",
+        isActive: true,
+        vehicles: [
+          {
+            id: "vehicle-1002",
+            regnum: "EF-456-GH",
+            user_id: "user-1002"
+          },
+          {
+            id: "vehicle-1003",
+            regnum: "IJ-789-KL",
+            user_id: "user-1002"
+          },
+          {
+            id: "vehicle-1004",
+            regnum: "MN-012-OP",
+            user_id: "user-1002"
+          }
+        ]
+      }
+    ];
+    
+    localStorage.setItem("users", JSON.stringify(testUsers));
+  }
+};
+
+// Appeler cette fonction pour initialiser les données de test
+seedInitialUsers();
