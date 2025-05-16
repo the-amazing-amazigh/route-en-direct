@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ConfirmDialog from "@/components/crud/ConfirmDialog";
-import { Plus, Edit, Trash2, RefreshCcw } from "lucide-react";
+import { Plus, Trash2, RefreshCcw } from "lucide-react";
+import { getVehicleDataFromAPI } from "@/services/api";
 
 const UserDashboardPage = () => {
   const navigate = useNavigate();
@@ -22,7 +23,6 @@ const UserDashboardPage = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
   const [vehicleData, setVehicleData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [vehid, setVehId] = useState("");
   const [regnum, setRegNum] = useState("");
   const [isVehicleDataDialogOpen, setIsVehicleDataDialogOpen] = useState(false);
 
@@ -54,15 +54,14 @@ const UserDashboardPage = () => {
   const handleAddVehicle = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!vehid || !regnum) {
-      toast.error("Veuillez remplir tous les champs");
+    if (!regnum) {
+      toast.error("Veuillez remplir le champ d'immatriculation");
       return;
     }
     
-    // Créer un nouveau véhicule
+    // Créer un nouveau véhicule avec uniquement l'immatriculation
     const newVehicle = {
       id: `vehicle-${Date.now()}`,
-      vehid,
       regnum,
       user_id: currentUser.id
     };
@@ -81,7 +80,6 @@ const UserDashboardPage = () => {
       
       // Mettre à jour l'état local
       setVehicles([...vehicles, newVehicle]);
-      setVehId("");
       setRegNum("");
       setIsAddDialogOpen(false);
       
@@ -119,40 +117,15 @@ const UserDashboardPage = () => {
     setSelectedVehicle(vehicle);
     
     try {
-      // Simuler une requête API (dans une implémentation réelle, ceci serait une requête à un backend sécurisé)
-      const apiUrl = `http://carrierweb.eu/api/api.asmx/vehicle?apikey=5B6B31-7E1B0C-ED66E6&vehid=${vehicle.vehid}&regnum=${vehicle.regnum}`;
+      // Appel à l'API avec uniquement l'immatriculation (regnum)
+      const response = await getVehicleDataFromAPI(vehicle.regnum);
       
-      // Note: Dans un environnement réel, les clés API ne devraient jamais être exposées côté client
-      // Cette requête devrait être effectuée via un backend sécurisé
-      
-      // Simuler une réponse API (normalement, ce serait fetch(apiUrl))
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Données de véhicule simulées
-      const mockApiResponse = {
-        success: true,
-        data: {
-          id: vehicle.vehid,
-          registration: vehicle.regnum,
-          make: "Volvo",
-          model: "FH16",
-          year: 2022,
-          status: "Active",
-          lastPosition: {
-            latitude: 48.8566,
-            longitude: 2.3522,
-            timestamp: new Date().toISOString(),
-            speed: 65,
-            direction: "Nord"
-          },
-          fuelLevel: 78,
-          mileage: 125000,
-          nextService: "2023-06-15"
-        }
-      };
-      
-      setVehicleData(mockApiResponse.data);
-      setIsVehicleDataDialogOpen(true);
+      if (response.success) {
+        setVehicleData(response.data);
+        setIsVehicleDataDialogOpen(true);
+      } else {
+        toast.error("Impossible de récupérer les données du véhicule");
+      }
     } catch (error) {
       console.error("Erreur lors de la récupération des données du véhicule:", error);
       toast.error("Erreur lors de la récupération des données du véhicule");
@@ -198,16 +171,14 @@ const UserDashboardPage = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>ID Véhicule</TableHead>
-                      <TableHead>N° d'immatriculation</TableHead>
+                      <TableHead>Immatriculation</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {vehicles.map((vehicle: any) => (
                       <TableRow key={vehicle.id}>
-                        <TableCell className="font-medium">{vehicle.vehid}</TableCell>
-                        <TableCell>{vehicle.regnum}</TableCell>
+                        <TableCell className="font-medium">{vehicle.regnum}</TableCell>
                         <TableCell className="text-right space-x-2">
                           <Button 
                             variant="outline" 
@@ -250,16 +221,6 @@ const UserDashboardPage = () => {
           </DialogHeader>
           <form onSubmit={handleAddVehicle} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="vehid">ID Véhicule</Label>
-              <Input
-                id="vehid"
-                value={vehid}
-                onChange={(e) => setVehId(e.target.value)}
-                placeholder="99721"
-                required
-              />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="regnum">N° d'immatriculation</Label>
               <Input
                 id="regnum"
@@ -268,6 +229,9 @@ const UserDashboardPage = () => {
                 placeholder="AB-123-CD"
                 required
               />
+              <p className="text-sm text-muted-foreground">
+                L'immatriculation est utilisée pour localiser le véhicule via CarrierWeb
+              </p>
             </div>
             <div className="flex justify-end space-x-2">
               <Button

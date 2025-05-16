@@ -1,4 +1,3 @@
-
 import { mockShipments, findShipmentByTrackingId, getTruckDataForShipment, updateTruckPositions } from '../data/mockData';
 import { Shipment, TruckData, ShipmentStatus } from '../types';
 
@@ -59,10 +58,10 @@ export const getAllShipments = async (): Promise<Shipment[]> => {
 };
 
 // CRUD pour les livraisons (envois)
-export const addShipment = async (shipmentData: any) => {
+export const addShipment = async (shipmentData: any): Promise<any> => {
   await new Promise(resolve => setTimeout(resolve, 800));
   
-  const newShipment = {
+  const newShipment: any = {
     id: `shipment-${Date.now()}`,
     trackingId: shipmentData.trackingId,
     description: shipmentData.description,
@@ -90,7 +89,22 @@ export const addShipment = async (shipmentData: any) => {
         lng: 2.3522 + (Math.random() * 10 - 5),
       }
     },
-    truckId: "truck-001"
+    truckId: "truck-001",
+    // Ajout des propriétés manquantes pour correspondre au type Shipment
+    currentPosition: {
+      lat: 48.8566 + (Math.random() * 5 - 2.5),
+      lng: 2.3522 + (Math.random() * 5 - 2.5),
+    },
+    stops: [],
+    currentStop: 0,
+    truck: {
+      id: "truck-001",
+      registration: "AB-123-CD"
+    },
+    driver: {
+      id: "driver-001",
+      name: "Jean Dupont"
+    }
   };
   
   shipments.push(newShipment);
@@ -257,12 +271,13 @@ export const isAdmin = (): boolean => {
 };
 
 // API simulée pour récupérer les données d'un véhicule via l'API CarrierWeb
-export const getVehicleDataFromAPI = async (vehid: string, regnum: string): Promise<any> => {
+export const getVehicleDataFromAPI = async (regnum: string): Promise<any> => {
   // Simuler la latence réseau
   await new Promise(resolve => setTimeout(resolve, 1500));
   
   // Dans une implémentation réelle, cette requête serait effectuée côté serveur
-  // const apiUrl = `http://carrierweb.eu/api/api.asmx/vehicle?apikey=5B6B31-7E1B0C-ED66E6&vehid=${vehid}&regnum=${regnum}`;
+  // L'immatriculation est maintenant l'identifiant principal pour localiser le véhicule
+  // const apiUrl = `http://carrierweb.eu/api/api.asmx/vehicle?apikey=5B6B31-7E1B0C-ED66E6&regnum=${regnum}`;
   // const response = await fetch(apiUrl);
   // return await response.json();
   
@@ -270,7 +285,6 @@ export const getVehicleDataFromAPI = async (vehid: string, regnum: string): Prom
   return {
     success: true,
     data: {
-      id: vehid,
       registration: regnum,
       make: "Volvo",
       model: "FH16",
