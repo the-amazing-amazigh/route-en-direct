@@ -1,13 +1,13 @@
 
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
 import TrackingMap from "../components/TrackingMap";
 import ShipmentTimeline from "../components/ShipmentTimeline";
 import ShipmentInfo from "../components/ShipmentInfo";
-import { getShipmentByTrackingId, getTruckData } from "../services/api";
+import { getShipmentByTrackingId, getTruckData, getAllShipments } from "../services/api";
 import { Shipment, TruckData } from "../types";
 import { Button } from "@/components/ui/button";
 import TrackingForm from "../components/TrackingForm";
@@ -19,8 +19,9 @@ const TrackingPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
   
-  // Fonction pour charger les données de l'envoi
+  // Fonction pour charger les données de l'envoi avec vérification élargie
   const fetchShipmentData = async () => {
     try {
       if (!trackingId) {
@@ -29,14 +30,27 @@ const TrackingPage = () => {
       }
       
       setIsLoading(true);
-      const data = await getShipmentByTrackingId(trackingId);
+      setError(null);
+      
+      console.log(`Recherche de l'envoi avec le numéro de suivi: ${trackingId}`);
+      
+      // Essayer d'abord avec la fonction standard
+      let data = await getShipmentByTrackingId(trackingId);
+      
+      // Si l'envoi n'est pas trouvé, essayer de chercher dans tous les envois
+      if (!data) {
+        console.log("Envoi non trouvé avec la méthode standard, recherche élargie...");
+        const allShipments = await getAllShipments();
+        data = allShipments.find(s => s.trackingId === trackingId);
+      }
       
       if (!data) {
-        setError("Envoi non trouvé. Vérifiez le numéro de suivi.");
+        setError(`Envoi non trouvé. Vérifiez le numéro de suivi: ${trackingId}`);
         setIsLoading(false);
         return;
       }
       
+      console.log("Envoi trouvé:", data);
       setShipment(data);
       
       // Charger les données du camion
@@ -80,6 +94,11 @@ const TrackingPage = () => {
     });
     fetchShipmentData();
   };
+
+  // Fonction pour retourner à la page d'accueil
+  const handleGoHome = () => {
+    navigate('/');
+  };
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -98,8 +117,11 @@ const TrackingPage = () => {
           <div className="flex flex-col items-center justify-center h-64">
             <h2 className="text-2xl font-bold text-red-600 mb-4">Erreur</h2>
             <p className="text-gray-600 mb-6">{error}</p>
-            <div className="w-full max-w-md">
+            <div className="flex flex-col w-full max-w-md space-y-4">
               <TrackingForm />
+              <Button variant="outline" onClick={handleGoHome} className="w-full">
+                Retour à l'accueil
+              </Button>
             </div>
           </div>
         ) : shipment ? (
