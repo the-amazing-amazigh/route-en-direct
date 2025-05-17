@@ -39,6 +39,7 @@ const truckSchema = z.object({
   type: TruckType.default("truck"),
   status: TruckStatus,
   carrierweb_id: z.string().optional(),
+  carrierweb_vehid: z.string().optional(),
 });
 
 type TruckFormValues = z.infer<typeof truckSchema>;
@@ -52,6 +53,7 @@ type TruckFormProps = {
     type?: TruckTypeType;
     status: TruckStatusType;
     carrierweb_id?: string;
+    carrierweb_vehid?: string;
   };
   onCancel: () => void;
 };
@@ -67,6 +69,7 @@ export function TruckForm({ onSubmit, initialData, onCancel }: TruckFormProps) {
       type: "truck",
       status: "Disponible",
       carrierweb_id: "",
+      carrierweb_vehid: "",
     },
   });
 
@@ -165,23 +168,44 @@ export function TruckForm({ onSubmit, initialData, onCancel }: TruckFormProps) {
             </FormItem>
           )}
         />
-        
-        <FormField
-          control={form.control}
-          name="carrierweb_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>ID CarrierWeb</FormLabel>
-              <FormControl>
-                <Input placeholder="Identifiant CarrierWeb" {...field} value={field.value || ""} />
-              </FormControl>
-              <FormDescription>
-                Identifiant unique du véhicule dans le système CarrierWeb (optionnel)
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+
+        {form.watch("type") === "truck" && (
+          <>
+            <FormField
+              control={form.control}
+              name="carrierweb_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Matricule CarrierWeb (regnum)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Immatriculation pour CarrierWeb" {...field} value={field.value || ""} />
+                  </FormControl>
+                  <FormDescription>
+                    L'immatriculation du véhicule dans CarrierWeb (paramètre regnum)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="carrierweb_vehid"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ID véhicule CarrierWeb (vehid)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="ID CarrierWeb" {...field} value={field.value || ""} />
+                  </FormControl>
+                  <FormDescription>
+                    L'identifiant unique du véhicule dans CarrierWeb (paramètre vehid)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
         
         <div className="flex justify-end space-x-2">
           <Button variant="outline" type="button" onClick={onCancel}>

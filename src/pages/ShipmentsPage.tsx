@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -199,10 +198,12 @@ const ShipmentsPage = () => {
                 description: selectedShipment.description,
                 status: selectedShipment.status,
                 clientName: selectedShipment.client.name,
-                origin: selectedShipment.origin.name,
+                shipper: selectedShipment.origin.name,
                 destination: selectedShipment.destination.name,
                 departureTime: new Date(selectedShipment.departureTime).toISOString().slice(0, 16),
                 eta: new Date(selectedShipment.eta).toISOString().slice(0, 16),
+                truckId: selectedShipment.truck.id,
+                trailerId: selectedShipment.trailer?.id
               }}
               onSubmit={handleEditSubmit} 
               onCancel={() => setIsEditDialogOpen(false)} 

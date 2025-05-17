@@ -646,13 +646,14 @@ export const isAdmin = (): boolean => {
 };
 
 // API simulée pour récupérer les données d'un véhicule via l'API CarrierWeb
-export const getVehicleDataFromAPI = async (regnum: string): Promise<any> => {
+export const getVehicleDataFromAPI = async (regnum: string, vehid?: string): Promise<any> => {
   // Simuler la latence réseau
   await new Promise(resolve => setTimeout(resolve, 1500));
   
   // Dans une implémentation réelle, cette requête serait effectuée côté serveur
-  // L'immatriculation est maintenant l'identifiant principal pour localiser le véhicule
-  // const apiUrl = `http://carrierweb.eu/api/api.asmx/vehicle?apikey=5B6B31-7E1B0C-ED66E6&regnum=${regnum}`;
+  // Format de l'API: http://carrierweb.eu/api/api.asmx/vehicle?apikey=5B6B31-7E1B0C-ED66E6&vehid=99721&regnum=AB-123-CD
+  console.log(`Requête vers CarrierWeb API avec regnum=${regnum}${vehid ? ` et vehid=${vehid}` : ''}`);
+  // const apiUrl = `http://carrierweb.eu/api/api.asmx/vehicle?apikey=5B6B31-7E1B0C-ED66E6${vehid ? `&vehid=${vehid}` : ''}&regnum=${regnum}`;
   // const response = await fetch(apiUrl);
   // return await response.json();
   
@@ -661,7 +662,7 @@ export const getVehicleDataFromAPI = async (regnum: string): Promise<any> => {
   const latitude = 48.8566 + (Math.random() * 2 - 1);
   const longitude = 2.3522 + (Math.random() * 2 - 1);
   
-  console.log(`Véhicule ${regnum} détecté à ${speed} km/h à la position [${latitude}, ${longitude}]`);
+  console.log(`Véhicule ${regnum} (ID: ${vehid || 'N/A'}) détecté à ${speed} km/h à la position [${latitude}, ${longitude}]`);
   
   // Vérifier si le véhicule est dans une zone spéciale (ferry ou client)
   let inSpecialZone = "none";
@@ -697,6 +698,7 @@ export const getVehicleDataFromAPI = async (regnum: string): Promise<any> => {
     success: true,
     data: {
       registration: regnum,
+      vehid: vehid || "",
       make: "Volvo",
       model: "FH16",
       year: 2022,

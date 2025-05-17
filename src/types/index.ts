@@ -107,6 +107,7 @@ export interface Vehicle {
   year: number;
   type: "truck" | "trailer";
   status: "En service" | "En maintenance" | "Disponible";
-  carrierweb_id?: string;
+  carrierweb_id?: string; // regnum (immatriculation)
+  carrierweb_vehid?: string; // vehid (ID CarrierWeb)
   user_id: string;
 }
