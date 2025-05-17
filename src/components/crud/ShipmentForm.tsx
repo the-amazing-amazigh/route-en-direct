@@ -258,14 +258,14 @@ export function ShipmentForm({ onSubmit, initialData, onCancel }: ShipmentFormPr
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Remorque (optionnel)</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
+                <Select onValueChange={field.onChange} defaultValue={field.value || "none"}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner une remorque" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Aucune remorque</SelectItem>
+                    <SelectItem value="none">Aucune remorque</SelectItem>
                     {isLoading ? (
                       <SelectItem value="loading" disabled>Chargement...</SelectItem>
                     ) : (
