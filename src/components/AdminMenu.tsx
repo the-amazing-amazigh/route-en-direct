@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Truck, Users, Package, Settings } from "lucide-react";
+import { Truck, Users, Package, Settings, Map, Building } from "lucide-react";
 
 const AdminMenu = () => {
   const location = useLocation();
@@ -12,6 +12,8 @@ const AdminMenu = () => {
   const menuItems = [
     { path: "/admin", label: "Tableau de bord", icon: Package },
     { path: "/admin/shipments", label: "Livraisons", icon: Package },
+    { path: "/admin/locations", label: "Lieux", icon: Map },
+    { path: "/admin/clients", label: "Clients", icon: Building },
     { path: "/admin/trucks", label: "Véhicules", icon: Truck },
     { path: "/admin/drivers", label: "Chauffeurs", icon: Users },
     { path: "/admin/users", label: "Utilisateurs", icon: Users },

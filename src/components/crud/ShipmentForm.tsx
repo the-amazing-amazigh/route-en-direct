@@ -23,10 +23,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { ShipmentStatus } from "@/types";
+import { useEffect, useState } from "react";
+import { getAllTrucks } from "@/services/api";
 
 // Définir le schéma de validation pour les livraisons
 const shipmentSchema = z.object({
-  trackingId: z.string().min(5, "Le numéro de suivi doit contenir au moins 5 caractères"),
+  trackingId: z.string().optional(),
   description: z.string().min(5, "La description doit contenir au moins 5 caractères"),
   status: z.enum([
     ShipmentStatus.EnChargement,
@@ -39,10 +41,12 @@ const shipmentSchema = z.object({
     ShipmentStatus.Livree
   ]),
   clientName: z.string().min(2, "Le nom du client doit contenir au moins 2 caractères"),
-  origin: z.string().min(2, "L'origine doit contenir au moins 2 caractères"),
+  shipper: z.string().min(2, "L'expéditeur doit contenir au moins 2 caractères"),
   destination: z.string().min(2, "La destination doit contenir au moins 2 caractères"),
   departureTime: z.string().min(1, "La date de départ est requise"),
   eta: z.string().min(1, "La date d'arrivée estimée est requise"),
+  truckId: z.string().min(1, "Le tracteur est requis"),
+  trailerId: z.string().optional(),
 });
 
 type ShipmentFormValues = z.infer<typeof shipmentSchema>;
@@ -50,34 +54,69 @@ type ShipmentFormValues = z.infer<typeof shipmentSchema>;
 type ShipmentFormProps = {
   onSubmit: (data: ShipmentFormValues) => void;
   initialData?: {
-    trackingId: string;
+    trackingId?: string;
     description: string;
     status: ShipmentStatus;
     clientName: string;
-    origin: string;
+    shipper: string;
     destination: string;
     departureTime: string;
     eta: string;
+    truckId?: string;
+    trailerId?: string;
   };
   onCancel: () => void;
 };
 
 export function ShipmentForm({ onSubmit, initialData, onCancel }: ShipmentFormProps) {
+  const [trucks, setTrucks] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Générer un numéro de suivi aléatoire
+  const generateTrackingId = () => {
+    const timestamp = new Date().getTime().toString().slice(-6);
+    const randomChars = Math.random().toString(36).substring(2, 5).toUpperCase();
+    return `RED-${randomChars}${timestamp}`;
+  };
+  
+  useEffect(() => {
+    const loadTrucks = async () => {
+      setIsLoading(true);
+      try {
+        const trucksData = await getAllTrucks();
+        setTrucks(trucksData);
+      } catch (error) {
+        toast.error("Erreur lors du chargement des véhicules");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadTrucks();
+  }, []);
+
   const form = useForm<ShipmentFormValues>({
     resolver: zodResolver(shipmentSchema),
     defaultValues: initialData || {
-      trackingId: "",
+      trackingId: generateTrackingId(),
       description: "",
       status: ShipmentStatus.EnChargement,
       clientName: "",
-      origin: "",
+      shipper: "",
       destination: "",
       departureTime: new Date().toISOString().split("T")[0] + "T" + new Date().toTimeString().slice(0,5),
       eta: new Date(Date.now() + 86400000).toISOString().split("T")[0] + "T" + new Date().toTimeString().slice(0,5),
+      truckId: "",
+      trailerId: "",
     },
   });
 
   function onFormSubmit(data: ShipmentFormValues) {
+    // Si c'est une nouvelle livraison et qu'il n'y a pas de trackingId, en générer un
+    if (!data.trackingId) {
+      data.trackingId = generateTrackingId();
+    }
+    
     onSubmit(data);
     toast.success("Livraison enregistrée avec succès");
   }
@@ -90,9 +129,9 @@ export function ShipmentForm({ onSubmit, initialData, onCancel }: ShipmentFormPr
           name="trackingId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Numéro de suivi</FormLabel>
+              <FormLabel>Numéro de suivi (généré automatiquement)</FormLabel>
               <FormControl>
-                <Input placeholder="RED-123456" {...field} />
+                <Input placeholder="RED-123456" {...field} value={field.value || ""} disabled />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -128,11 +167,7 @@ export function ShipmentForm({ onSubmit, initialData, onCancel }: ShipmentFormPr
                 <SelectContent>
                   <SelectItem value={ShipmentStatus.EnChargement}>En chargement</SelectItem>
                   <SelectItem value={ShipmentStatus.Charge}>Chargé</SelectItem>
-                  <SelectItem value={ShipmentStatus.EnTransit}>En transit</SelectItem>
-                  <SelectItem value={ShipmentStatus.EnRoute}>En route</SelectItem>
                   <SelectItem value={ShipmentStatus.EnDouane}>En douane</SelectItem>
-                  <SelectItem value={ShipmentStatus.EnFerry}>En ferry</SelectItem>
-                  <SelectItem value={ShipmentStatus.SurSiteClient}>Sur site client</SelectItem>
                   <SelectItem value={ShipmentStatus.Livree}>Livrée</SelectItem>
                 </SelectContent>
               </Select>
@@ -158,12 +193,12 @@ export function ShipmentForm({ onSubmit, initialData, onCancel }: ShipmentFormPr
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="origin"
+            name="shipper"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Origine</FormLabel>
+                <FormLabel>Expéditeur</FormLabel>
                 <FormControl>
-                  <Input placeholder="Lieu d'origine" {...field} />
+                  <Input placeholder="Lieu d'expédition" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -179,6 +214,71 @@ export function ShipmentForm({ onSubmit, initialData, onCancel }: ShipmentFormPr
                 <FormControl>
                   <Input placeholder="Lieu de destination" {...field} />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="truckId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tracteur</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un tracteur" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {isLoading ? (
+                      <SelectItem value="loading" disabled>Chargement...</SelectItem>
+                    ) : (
+                      trucks
+                        .filter(truck => truck.status !== "En maintenance")
+                        .map(truck => (
+                          <SelectItem key={truck.id} value={truck.id}>
+                            {truck.registration} - {truck.model}
+                          </SelectItem>
+                        ))
+                    )}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="trailerId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Remorque (optionnel)</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner une remorque" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="">Aucune remorque</SelectItem>
+                    {isLoading ? (
+                      <SelectItem value="loading" disabled>Chargement...</SelectItem>
+                    ) : (
+                      trucks
+                        .filter(truck => truck.type === "trailer" && truck.status !== "En maintenance")
+                        .map(trailer => (
+                          <SelectItem key={trailer.id} value={trailer.id}>
+                            {trailer.registration}
+                          </SelectItem>
+                        ))
+                    )}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

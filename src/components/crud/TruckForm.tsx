@@ -12,6 +12,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import {
   Select,
@@ -26,12 +27,18 @@ import { toast } from "sonner";
 const TruckStatus = z.enum(["En service", "En maintenance", "Disponible"]);
 type TruckStatusType = z.infer<typeof TruckStatus>;
 
+// Définir le type comme enum pour le typage strict
+const TruckType = z.enum(["truck", "trailer"]);
+type TruckTypeType = z.infer<typeof TruckType>;
+
 // Définir le schéma de validation pour les camions
 const truckSchema = z.object({
   registration: z.string().min(5, "L'immatriculation doit contenir au moins 5 caractères"),
   model: z.string().min(2, "Le modèle doit contenir au moins 2 caractères"),
   year: z.coerce.number().int().min(1990).max(new Date().getFullYear() + 1),
+  type: TruckType.default("truck"),
   status: TruckStatus,
+  carrierweb_id: z.string().optional(),
 });
 
 type TruckFormValues = z.infer<typeof truckSchema>;
@@ -42,7 +49,9 @@ type TruckFormProps = {
     registration: string;
     model: string;
     year: number;
+    type?: TruckTypeType;
     status: TruckStatusType;
+    carrierweb_id?: string;
   };
   onCancel: () => void;
 };
@@ -55,7 +64,9 @@ export function TruckForm({ onSubmit, initialData, onCancel }: TruckFormProps) {
       registration: "",
       model: "",
       year: new Date().getFullYear(),
+      type: "truck",
       status: "Disponible",
+      carrierweb_id: "",
     },
   });
 
@@ -112,6 +123,28 @@ export function TruckForm({ onSubmit, initialData, onCancel }: TruckFormProps) {
         
         <FormField
           control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Type</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="truck">Tracteur</SelectItem>
+                  <SelectItem value="trailer">Remorque</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
           name="status"
           render={({ field }) => (
             <FormItem>
@@ -128,6 +161,23 @@ export function TruckForm({ onSubmit, initialData, onCancel }: TruckFormProps) {
                   <SelectItem value="Disponible">Disponible</SelectItem>
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="carrierweb_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>ID CarrierWeb</FormLabel>
+              <FormControl>
+                <Input placeholder="Identifiant CarrierWeb" {...field} value={field.value || ""} />
+              </FormControl>
+              <FormDescription>
+                Identifiant unique du véhicule dans le système CarrierWeb (optionnel)
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

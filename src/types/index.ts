@@ -47,6 +47,10 @@ export interface Shipment {
     id: string;
     registration: string;
   };
+  trailer?: {
+    id: string;
+    registration: string;
+  };
   driver: {
     id: string;
     name: string;
@@ -71,4 +75,38 @@ export interface User {
   email: string;
   role: "admin" | "client";
   clientId?: string;
+}
+
+export interface Location {
+  id: string;
+  name: string;
+  type: "pickup" | "delivery" | "customs" | "ferry" | "other";
+  address: string;
+  position: Position;
+  radius?: number; // Rayon en mètres pour la détection automatique
+  active: boolean;
+  user_id: string | null; // null pour les lieux partagés
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  contact: string;
+  email: string;
+  phone: string;
+  address: string;
+  notes?: string;
+  active: boolean;
+  user_id: string;
+}
+
+export interface Vehicle {
+  id: string;
+  registration: string;
+  model: string;
+  year: number;
+  type: "truck" | "trailer";
+  status: "En service" | "En maintenance" | "Disponible";
+  carrierweb_id?: string;
+  user_id: string;
 }

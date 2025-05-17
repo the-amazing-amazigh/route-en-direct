@@ -68,9 +68,15 @@ const ShipmentInfo = ({ shipment }: ShipmentInfoProps) => {
           <h3 className="text-lg font-bold mb-4">Informations de transport</h3>
           <div className="space-y-3">
             <div>
-              <p className="text-sm text-gray-500">Véhicule</p>
+              <p className="text-sm text-gray-500">Tracteur</p>
               <p>{shipment.truck.registration}</p>
             </div>
+            {shipment.trailer && (
+              <div>
+                <p className="text-sm text-gray-500">Remorque</p>
+                <p>{shipment.trailer.registration}</p>
+              </div>
+            )}
             <div>
               <p className="text-sm text-gray-500">Chauffeur</p>
               <p>{shipment.driver.name}</p>
@@ -102,6 +108,7 @@ const ShipmentInfo = ({ shipment }: ShipmentInfoProps) => {
               </div>
               <div>
                 <p className="font-semibold">{shipment.origin.name}</p>
+                <p className="text-xs text-gray-500">Expéditeur</p>
                 <p className="text-sm text-gray-500">
                   Prévu: {formatDate(shipment.origin.plannedArrival)}
                 </p>
@@ -142,6 +149,7 @@ const ShipmentInfo = ({ shipment }: ShipmentInfoProps) => {
               </div>
               <div>
                 <p className="font-semibold">{shipment.destination.name}</p>
+                <p className="text-xs text-gray-500">Destination</p>
                 <p className="text-sm text-gray-500">
                   Prévu: {formatDate(shipment.destination.plannedArrival)}
                 </p>

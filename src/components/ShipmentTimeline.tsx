@@ -42,6 +42,8 @@ const StatusIcon = ({ status, isActive, isPast }: { status: ShipmentStatus, isAc
       icon = "✓";
       break;
     case ShipmentStatus.EnTransit:
+      icon = "⚡"; // Changé pour indiquer détection automatique par vitesse
+      break;
     case ShipmentStatus.EnRoute:
       icon = "→";
       break;
@@ -49,20 +51,28 @@ const StatusIcon = ({ status, isActive, isPast }: { status: ShipmentStatus, isAc
       icon = "!";
       break;
     case ShipmentStatus.EnFerry:
-      icon = "⚓";
+      icon = "⚓"; // Détecté automatiquement par zone
       break;
     case ShipmentStatus.SurSiteClient:
-      icon = "↓";
+      icon = "↓"; // Détecté automatiquement par zone
       break;
     case ShipmentStatus.Livree:
       icon = "★";
       break;
   }
   
+  // Informations supplémentaires sur la détection automatique
+  let autoDetect = "";
+  if (status === ShipmentStatus.EnTransit) {
+    autoDetect = " (auto: >80km/h)";
+  } else if (status === ShipmentStatus.EnFerry || status === ShipmentStatus.SurSiteClient) {
+    autoDetect = " (auto: zone)";
+  }
+  
   return (
     <div className="flex flex-col items-center">
       <div className={iconClass}>{icon}</div>
-      <span className={textClass}>{status}</span>
+      <span className={textClass}>{status}{autoDetect}</span>
     </div>
   );
 };
